@@ -24,12 +24,12 @@ jobs:
     runs-on: ubuntu-20.04
     container: fedora:latest
     steps:
+      - name: Install DNF packages
+        run: sudo dnf install -y ${{ env.packages }}
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
-      - name: run packaging
-        run: |
-          sudo dnf install -y ${{ env.packages }}
-          tox -e packaging
+      - name: Run tox
+        run: tox -e packaging
 
   test:
     runs-on: ubuntu-20.04
@@ -44,12 +44,10 @@ jobs:
     container:  fedora:latest  # runs inside of this image, remove this to run on host
     steps:
       - name: install dnf tools
-        run: |
-          sudo dnf install -y ${{ env.packages }}
+        run: sudo dnf install -y ${{ env.packages }}
       - uses: actions/checkout@v2
       - name: run test
-        run: |
-          tox -e py$(printf "${{ matrix.python }}" | tr -d '.')
+        run: tox -e py$(printf "${{ matrix.python }}" | tr -d '.')
 
   publish:
     needs:
