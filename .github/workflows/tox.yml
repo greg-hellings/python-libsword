@@ -57,19 +57,16 @@ jobs:
     env:
       PY_COLORS: 1
       TOXENV: packaging
+    container: fedora:latest
     steps:
-      - name: Switch to using Python 3.6 by default
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.6
-      - name: Install tox
-        run: python -m pip install tox
+      - name: Install DNF tools
+        run: sudo dnf install -y ${{ env.packages }}
       - name: Check out src from Git
         uses: actions/checkout@v2
         with:
           fetch-depth: 1
       - name: Build dists
-        run: python -m tox
+        run: python setup.py sdist
       - name: Publish to pypi.org
         uses: pypa/gh-action-pypi-publish@master
         with:
