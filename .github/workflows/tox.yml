@@ -1,0 +1,88 @@
+name: tox
+
+on:
+  create:  # is used for publishing to PyPI and TestPyPI
+    tags:  # any tag regardless of its name, no branches
+      - "**"
+  push:  # only publishes pushes to the main branch to TestPyPI
+    branches:  # any integration branch but not tag
+      - "master"
+  pull_request:
+  release:
+    types:
+      - published  # It seems that you can publish directly without creating
+      - prereleased
+  schedule:
+    - cron: 1 0 * * *  # Run daily at 0:01 UTC
+
+jobs:
+  lint:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+      - name: run lint
+        run: |
+          python -m pip install -U tox
+          tox -e lint
+
+  packaging:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+      - name: run packaging
+        run: |
+          python -m pip install -U tox
+          tox -e packaging
+
+  test:
+    needs: lint
+    runs-on: ubuntu-20.04
+    strategy:
+      fail-fast: false
+      matrix:
+        python:
+          - "3.6"
+          - "3.7"
+          - "3.8"
+          - "3.9"
+    container:  fedora:latest  # runs inside of this image, remove this to run on host
+    steps:
+      - name: install dnf tools
+        run: |
+          sudo dnf install -y sword-devel python3-tox git gcc-c++
+      #- name: install appropriate python  # Use this to install python on host, if needed
+      #  uses: actions/setup-python@v2
+      #  with:
+      #    python-version: ${{ matrix.python }}
+      - uses: actions/checkout@v2
+      - name: run test
+        run: |
+          tox -e py$(printf "${{ matrix.python }}" | tr -d '.')
+
+  publish:
+    needs:
+      - packaging
+    if: github.event_name == 'release'
+    runs-on: ubuntu-20.04
+    env:
+      PY_COLORS: 1
+      TOXENV: packaging
+    steps:
+      - name: Switch to using Python 3.6 by default
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.6
+      - name: Install tox
+        run: python -m pip install tox
+      - name: Check out src from Git
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+      - name: Build dists
+        run: python -m tox
+      - name: Publish to pypi.org
+        uses: pypa/gh-action-pypi-publish@master
+        with:
+          password: ${{ secrets.pypi_password }}

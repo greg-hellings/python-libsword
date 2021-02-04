@@ -1,0 +1,10 @@
+.*.swp
+.eggs
+*.egg-info
+__pycache__
+*.pyc
+*.pyo
+.coverage.python*
+build
+*.so
+dist
