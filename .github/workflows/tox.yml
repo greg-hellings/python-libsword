@@ -25,7 +25,7 @@ jobs:
       - uses: actions/setup-python@v2
       - name: run packaging
         run: |
-          sudo dnf install -y sword-devel git gcc-c++ python3-devel
+          sudo dnf install -y sword-devel git gcc-c++ python3-devel libffi
           python -m pip install -U tox
           tox -e packaging
 
