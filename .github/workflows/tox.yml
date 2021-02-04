@@ -15,6 +15,9 @@ on:
   schedule:
     - cron: 1 0 * * *  # Run daily at 0:01 UTC
 
+env:
+  packages: sword-devel python3-tox git gcc-c++ python3-devel
+
 jobs:
 
   packaging:
@@ -25,8 +28,7 @@ jobs:
       - uses: actions/setup-python@v2
       - name: run packaging
         run: |
-          sudo dnf install -y sword-devel git gcc-c++ python3-devel libffi
-          python -m pip install -U tox
+          sudo dnf install -y ${{ env.packages }}
           tox -e packaging
 
   test:
@@ -43,11 +45,7 @@ jobs:
     steps:
       - name: install dnf tools
         run: |
-          sudo dnf install -y sword-devel python3-tox git gcc-c++ python3-devel
-      #- name: install appropriate python  # Use this to install python on host, if needed
-      #  uses: actions/setup-python@v2
-      #  with:
-      #    python-version: ${{ matrix.python }}
+          sudo dnf install -y ${{ env.packages }}
       - uses: actions/checkout@v2
       - name: run test
         run: |
