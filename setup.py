@@ -3,6 +3,7 @@ import setuptools
 
 def parse_pkgconfig():
     output = subprocess.getoutput('pkg-config --cflags --libs sword')
+    print("Parsing {} for pkg-config flags".format(output))
     args = {'include_dirs': [], 'libraries': ['sword'], 'library_dirs': []}
     mapping = {'-I': 'include_dirs', '-L': 'library_dirs', '-l': 'libraries'}
     for flag in output.strip().split():
